@@ -21,12 +21,12 @@
   //     "bucket_name": "my-bucket"
   //   }
   // ],
-  "d1_databases":[
+  "d1_databases": [
     {
       "binding": "ravin_db",
       "database_name": "ravin",
-      "database_id": "c9d8ce69-21f2-4424-ba15-463caa3536ee"
-    }
+      "database_id": "c9d8ce69-21f2-4424-ba15-463caa3536ee",
+    },
   ],
   // "ai": {
   //   "binding": "AI"
