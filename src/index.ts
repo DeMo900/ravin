@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { jwt } from "hono/jwt";
 import GenreRoutes from "./routes/routes.genre";
 import AuthRoutes from "./routes/routes.auth";
+import folderApp from "./routes/routes.folder";
 const app = new Hono<{ Bindings: Env }>();
 app.use("/cms/*", async (c, next) => {
   const jwtMiddleware = jwt({
@@ -12,5 +13,6 @@ app.use("/cms/*", async (c, next) => {
 })
 app.route("/", GenreRoutes);
 app.route("/", AuthRoutes);
+app.route("/",folderApp)
 
 export default app;
