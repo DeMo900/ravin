@@ -1,10 +1,10 @@
 import { Folder, Genre } from "../types/db";
 
 export const createGenre = async (genre: Genre, db: D1Database) => {
-  const { name, created_at } = genre;
+  const { name } = genre;
   const result = await db
-    .prepare("INSERT INTO genres (name, created_at) VALUES (?, ?)")
-    .bind(name, created_at)
+    .prepare("INSERT INTO genres (name) VALUES (?)")
+    .bind(name)
     .run();
   return result;
 };
