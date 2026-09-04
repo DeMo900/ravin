@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import * as AuthServices from "../services/services.aith"
-const app = new Hono<{ Bindings: Env }>();
+const authApp = new Hono<{ Bindings: Env }>();
 
-app.post("/cms/auth/login", async (c) => {
+authApp.post("/cms/auth/login", async (c) => {
     const body = await c.req.json();
     const result = await AuthServices.login(body.username, body.password, c.env.ravin_db);
     return c.json(result);
@@ -11,3 +11,5 @@ app.post("/cms/auth/login", async (c) => {
     const result = await AuthServices.signUp(body.username, body.password, c.env.ravin_db);
     return c.json(result);
   })
+
+export default authApp;

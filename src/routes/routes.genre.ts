@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import * as GenreModel from "../models/models.genre";
 
-const app = new Hono<{ Bindings: Env }>();
+const genreApp = new Hono<{ Bindings: Env }>();
 
-app
+genreApp
   .get("/cms/genres", async (c) => {
     const result = await GenreModel.getGenres(c.env.ravin_db);
     return c.json(result);
@@ -23,3 +23,4 @@ app
     const result = await GenreModel.deleteGenre(id, c.env.ravin_db);
     return c.json(result);
   });
+  export default genreApp;
