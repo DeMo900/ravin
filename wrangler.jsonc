@@ -1,18 +1,25 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "backend",
-  "main": "src/index.ts",
-  "compatibility_date": "2026-09-01",
-  "d1_databases": [
-    {
-      "binding": "ravin_db",
-      "database_name": "ravin",
-      "database_id": "c9d8ce69-21f2-4424-ba15-463caa3536ee"
-    }
-  ],
-  "secrets": {
-    "required": [
-      "JWT_SECRET"
-    ]
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "backend",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-09-01",
+	"d1_databases": [
+		{
+			"binding": "ravin_db",
+			"database_name": "ravin",
+			"database_id": "c9d8ce69-21f2-4424-ba15-463caa3536ee"
+		}
+	],
+	"secrets": {
+		"required": [
+			"JWT_SECRET"
+		]
+	},
+	"r2_buckets": [
+		{
+			"bucket_name": "ravin",
+			"binding": "ravin",
+			"remote": true
+		}
+	]
 }
