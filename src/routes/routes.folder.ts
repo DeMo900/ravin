@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import * as FolderModel from "../models/models.folder";
 
-const folderApp = new Hono<{ Bindings: Env }>();
+export const folderApp = new Hono<{ Bindings: Env }>();
 
 folderApp
   .get("/folders", async (c) => {
@@ -51,4 +51,3 @@ folderApp
     }
   });
 
-export default folderApp;

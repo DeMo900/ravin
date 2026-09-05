@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { verify } from "hono/jwt";
 import * as AuthServices from "../services/services.auth";
 
-const authApp = new Hono<{ Bindings: Env }>();
+export const authApp = new Hono<{ Bindings: Env }>();
 
 authApp
   .post("/auth/login", async (c) => {
@@ -25,5 +25,3 @@ authApp
     const result = await AuthServices.signUp(body.username, body.password, c.env.ravin_db);
     return c.json(result);
   });
-
-export default authApp;

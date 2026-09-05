@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import * as GenreModel from "../models/models.genre";
 
-const genreApp = new Hono<{ Bindings: Env }>();
+export const genreApp = new Hono<{ Bindings: Env }>();
 
 genreApp
   .get("/genres", async (c) => {
@@ -68,4 +68,3 @@ genreApp
     }
   });
 
-export default genreApp;
