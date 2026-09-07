@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import * as GenreModel from "../models/models.genre";
 
-export const genreApp = new Hono<{ Bindings: Env }>();
+export const GenreRoutes = new Hono<{ Bindings: Env }>();
 
-genreApp
+GenreRoutes
   .get("/genres", async (c) => {
     try {
       const result = await GenreModel.getGenres(c.env.ravin_db);
@@ -13,7 +13,7 @@ genreApp
       return c.json({ error: "Internal Server Error", message: "Could not retrieve genres." }, 500);
     }
   })
-  .get("/genres/:id", async (c) => {
+  .get("/genre/:id", async (c) => {
     try {
       const id = Number(c.req.param("id"));
 
@@ -37,7 +37,7 @@ genreApp
       return c.json({ error: "Internal Server Error", message: "Could not retrieve genre count." }, 500);
     }
   })
-  .post("/cms/genres", async (c) => {
+  .post("/cms/genre", async (c) => {
     try {
       const body = await c.req.json();
 
@@ -52,7 +52,7 @@ genreApp
       return c.json({ error: "Internal Server Error", message: "Could not create genre." }, 500);
     }
   })
-  .delete("/cms/genres/:id", async (c) => {
+  .delete("/cms/genre/:id", async (c) => {
     try {
       const id = Number(c.req.param("id"));
 

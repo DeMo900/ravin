@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import { verify } from "hono/jwt";
+import { sign } from "hono/jwt";
 import * as AuthServices from "../services/services.auth";
 
-export const authApp = new Hono<{ Bindings: Env }>();
+export const AuthRoutes = new Hono<{ Bindings: Env }>();
 
-authApp
+AuthRoutes
   .post("/auth/login", async (c) => {
     try {
       const body = await c.req.json();
@@ -14,7 +14,10 @@ authApp
       }
 
       const result = await AuthServices.login(body.username, body.password, c.env.ravin_db);
-      return c.json(result);
+      const token = await sign({
+        result
+      },c.env.JWT_SECRET)
+      return c.json(token);
     } catch (error) {
       console.error("Login failed:", error);
       return c.json({ error: "Internal Server Error", message: "An error occurred during login." }, 500);

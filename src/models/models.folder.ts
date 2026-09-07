@@ -1,7 +1,7 @@
 import { Folder } from "../types/db";
 
 export const createFolder = async (folder: Folder, db: D1Database) => {
-  const { name, genre_id } = folder;
+  const { name, genre_id} = folder;
   const result = await db
     .prepare("INSERT INTO folders (name,genre_id) VALUES (?, ?)")
     .bind(name,genre_id)

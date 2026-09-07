@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import * as FolderModel from "../models/models.folder";
+import * as GenreModel from "../models/models.genre";
 
-export const folderApp = new Hono<{ Bindings: Env }>();
+export const FolderRoutes = new Hono<{ Bindings: Env }>();
 
-folderApp
+FolderRoutes
   .get("/folders", async (c) => {
     try {
       const result = await FolderModel.getFolders(c.env.ravin_db); 
@@ -22,13 +23,16 @@ folderApp
       return c.json({ error: "Internal Server Error", message: "Could not retrieve folder count." }, 500);
     }
   })
-  .post("/cms/folders", async (c) => {
+  .post("/cms/folder", async (c) => {
     try {
       const body = await c.req.json();
-      if (!body || !body.name) {
-        return c.json({ error: "Bad Request", message: "Folder name is required." }, 400);
+      if (!body || !body.name || !body.genre_id) {
+        return c.json({ error: "Bad Request", message: "Some field is missing" }, 400);
       }
-
+ const isGenreExist = await GenreModel.getGenreWithId(body.genre_id,c.env.ravin_db)
+ if (!isGenreExist){
+  return c.json({error:"genre not found"},400); 
+ }
       const result = await FolderModel.createFolder(body, c.env.ravin_db);
       return c.json(result, 201); 
     } catch (error) {
@@ -36,7 +40,7 @@ folderApp
       return c.json({ error: "Internal Server Error", message: "Could not create folder." }, 500);
     }
   })
-  .delete("/cms/folders/:id", async (c) => {
+  .delete("/cms/folder/:id", async (c) => {
     try {
       const id = Number(c.req.param("id"));
       if (isNaN(id)) {

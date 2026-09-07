@@ -12,6 +12,11 @@ export const getGenres = async (db: D1Database) => {
   const result = await db.prepare("SELECT * FROM genres").all();
   return result.results;
 };
+export const getGenreWithId = async (id:Number,db: D1Database) => {
+  const result = await db.prepare("SELECT * FROM genres WHERE id = ?")
+  .bind(id).first<Genre>();
+  return result;
+};
 export const getGenreWithFolders = async (id: number, db: D1Database) => {
   const genre = await db
     .prepare("SELECT * FROM genres WHERE id = ?")
