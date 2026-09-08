@@ -35,6 +35,7 @@ export const countImagesInFolder = async (id: number, db: D1Database) => {
     .bind(id)
     .first<{ count: number }>();
   return result;
+  
 };
 
 export const countImagesInGenre = async (id: number, db: D1Database) => {

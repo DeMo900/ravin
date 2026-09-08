@@ -20,7 +20,7 @@ imageApp.get("/image/:id", async (c) => {
   } catch (err) {
     return c.json({ error: "Failed to fetch image" }, 500);
   }
-}).get("/image/:folderId", async (c) => {
+}).get("/images/:folderId", async (c) => {
   try {
     const id = Number(c.req.param("folderId"));
 
