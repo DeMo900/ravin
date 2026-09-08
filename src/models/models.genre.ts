@@ -23,7 +23,6 @@ export const getGenreWithFolders = async (id: number, db: D1Database) => {
     .bind(id)
     .first<Genre>();
   if (!genre) return null;
-
   const { results: folders } = await db
     .prepare("SELECT * FROM folders WHERE genre_id = ?")
     .bind(id)

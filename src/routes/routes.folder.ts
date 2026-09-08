@@ -13,6 +13,21 @@ FolderRoutes
       console.error("Failed to fetch folders:", error);
       return c.json({ error: "Internal Server Error", message: "Could not retrieve folders." }, 500);
     }
+  }).get("/folder/:id",async (c) =>{
+    try {
+      const id = Number(c.req.param("id"))
+      if (isNaN(id)) {
+        return c.json({ error: "Bad Request", message: "Invalid folder ID format." }, 400);
+      }
+      const result = await FolderModel.getFolderById(id,c.env.ravin_db); 
+      if (!result){
+        return c.json({ error: "Not Found", message: "Folder not found." }, 404);
+      }
+      return c.json(result); 
+    } catch (error) {
+      console.error("Failed to fetch folder:", error);
+      return c.json({ error: "Internal Server Error", message: "Could not retrieve folder." }, 500);
+    }
   })
   .get("/folders/count", async (c) => {
     try {
@@ -29,11 +44,10 @@ FolderRoutes
       if (!body || !body.name || !body.genre_id) {
         return c.json({ error: "Bad Request", message: "Some field is missing" }, 400);
       }
- const isGenreExist = await GenreModel.getGenreWithId(body.genre_id,c.env.ravin_db)
- if (!isGenreExist){
-  return c.json({error:"genre not found"},400); 
- }
       const result = await FolderModel.createFolder(body, c.env.ravin_db);
+      if (!result.success){
+     return   c.json({error:result.error},400)
+      }
       return c.json(result, 201); 
     } catch (error) {
       console.error("Failed to create folder:", error);
