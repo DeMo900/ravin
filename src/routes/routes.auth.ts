@@ -23,9 +23,15 @@ AuthRoutes.post("/auth/login", async (c) => {
       body.password,
       c.env.ravin_db,
     );
+    if(!result.success){
+      return c.json(result, 400);
+    }
+    const expirationDate = 60*60*24*30
     const token = await sign(
       {
-        result,
+        id: result.user?.id,
+        username: result.user?.username,
+        exp:Math.floor(Date.now() / 1000 + expirationDate),
       },
       c.env.JWT_SECRET,
     );
@@ -40,12 +46,4 @@ AuthRoutes.post("/auth/login", async (c) => {
       500,
     );
   }
-}).post("/auth/sign-up", async (c) => {
-  const body = await c.req.json();
-  const result = await AuthServices.signUp(
-    body.username,
-    body.password,
-    c.env.ravin_db,
-  );
-  return c.json(result);
-});
+})

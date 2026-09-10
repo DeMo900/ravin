@@ -41,18 +41,29 @@ export const countImages = async (db: D1Database) => {
   return result;
 };
 
-export const countImagesInFolderOrGenre = async (
+export const countImagesByGenreId = async (
   id: number,
   db: D1Database,
 ) => {
   const result = await db
     .prepare(
-     `SELECT COUNT(images.id) AS count 
+      `SELECT COUNT(images.id) AS count 
        FROM images 
        INNER JOIN folders ON images.folder_id = folders.id
-       WHERE images.folder_id = ? OR folders.genre_id = ?`
+       WHERE folders.genre_id = ?`
     )
-    .bind(id, id)
+    .bind(id)
+    .first<{ count: number }>();
+  return result;
+};
+
+export const countImagesByFolderId = async (
+  id: number,
+  db: D1Database,
+) => {
+  const result = await db
+    .prepare("SELECT COUNT(id) AS count FROM images WHERE folder_id = ?")
+    .bind(id)
     .first<{ count: number }>();
   return result;
 };

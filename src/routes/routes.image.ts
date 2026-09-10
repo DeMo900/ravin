@@ -54,15 +54,30 @@ imageApp
       return c.json({ error: "Failed to fetch images count " }, 500);
     }
   })
-  .get("/images/count/:folderOrGenreId", async (c) => {
+  .get("/images/count/genre/:id", async (c) => {
     try {
-      const id = Number(c.req.param("folderOrGenreId"));
+      const id = Number(c.req.param("id"));
 
       if (Number.isNaN(id)) {
         return c.json({ error: "Invalid id" }, 400);
       }
 
-      const count = await imageModel.countImagesInFolderOrGenre(id, c.env.ravin_db);
+      const count = await imageModel.countImagesByGenreId(id, c.env.ravin_db);
+
+      return c.json({ count });
+    } catch (err) {
+      return c.json({ error: "Failed to fetch images count in genre" }, 500);
+    }
+  })
+  .get("/images/count/folder/:id", async (c) => {
+    try {
+      const id = Number(c.req.param("id"));
+
+      if (Number.isNaN(id)) {
+        return c.json({ error: "Invalid id" }, 400);
+      }
+
+      const count = await imageModel.countImagesByFolderId(id, c.env.ravin_db);
 
       return c.json({ count });
     } catch (err) {

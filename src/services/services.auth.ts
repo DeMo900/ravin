@@ -6,14 +6,14 @@ export const login = async (
   username: string,
   password: string,
   db: D1Database,
-): Promise<User | null> => {
+): Promise<{success: boolean, user: User | null, error?: string}> => {
   const user = await UserModel.findByUsername(username, db);
-  if (!user) return null;
+  if (!user) return {success: false, user: null, error: "User not found"};
 
   const isPasswordValid = await comparePassword(password, user.password_hash);
-  if (!isPasswordValid) return null;
+  if (!isPasswordValid) return {success: false, user: null, error: "Invalid password"};
 
-  return user;
+  return {success: true, user};
 };
 
 export const signUp = async (
