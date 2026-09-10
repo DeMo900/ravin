@@ -1,19 +1,23 @@
 import { comparePassword, hashPassword } from "../utils/password";
 import * as UserModel from "../models/models.auth";
-import type { User } from "../types/db";
+import type { UserWithoutPassword } from "../types/db";
 
 export const login = async (
   username: string,
   password: string,
   db: D1Database,
-): Promise<{success: boolean, user: User | null, error?: string}> => {
+): Promise<{success: boolean, user: UserWithoutPassword | null, error?: string}> => {
   const user = await UserModel.findByUsername(username, db);
   if (!user) return {success: false, user: null, error: "User not found"};
 
   const isPasswordValid = await comparePassword(password, user.password_hash);
   if (!isPasswordValid) return {success: false, user: null, error: "Invalid password"};
-
-  return {success: true, user};
+  const userWithoutPassword:UserWithoutPassword = {
+    id: user.id,
+    username: user.username,
+    created_at: user.created_at
+  }
+  return {success: true, user:userWithoutPassword};
 };
 
 export const signUp = async (

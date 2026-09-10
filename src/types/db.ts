@@ -4,7 +4,7 @@ export interface User {
   password_hash: string;
   created_at: string;
 }
-
+export interface UserWithoutPassword extends Omit<User, "password_hash"> {}
 export interface Genre {
   id: number;
   name: string;
