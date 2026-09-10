@@ -4,27 +4,48 @@ import * as AuthServices from "../services/services.auth";
 
 export const AuthRoutes = new Hono<{ Bindings: Env }>();
 
-AuthRoutes
-  .post("/auth/login", async (c) => {
-    try {
-      const body = await c.req.json();
-
-      if (!body || !body.username || !body.password) {
-        return c.json({ error: "Bad Request", message: "Username and password are required." }, 400);
-      }
-
-      const result = await AuthServices.login(body.username, body.password, c.env.ravin_db);
-      const token = await sign({
-        result
-      },c.env.JWT_SECRET)
-      return c.json(token);
-    } catch (error) {
-      console.error("Login failed:", error);
-      return c.json({ error: "Internal Server Error", message: "An error occurred during login." }, 500);
-    }
-  })
-  .post("/auth/sign-up", async (c) => {
+AuthRoutes.post("/auth/login", async (c) => {
+  try {
     const body = await c.req.json();
-    const result = await AuthServices.signUp(body.username, body.password, c.env.ravin_db);
-    return c.json(result);
-  });
+
+    if (!body || !body.username || !body.password) {
+      return c.json(
+        {
+          error: "Bad Request",
+          message: "Username and password are required.",
+        },
+        400,
+      );
+    }
+
+    const result = await AuthServices.login(
+      body.username,
+      body.password,
+      c.env.ravin_db,
+    );
+    const token = await sign(
+      {
+        result,
+      },
+      c.env.JWT_SECRET,
+    );
+    return c.json(token);
+  } catch (error) {
+    console.error("Login failed:", error);
+    return c.json(
+      {
+        error: "Internal Server Error",
+        message: "An error occurred during login.",
+      },
+      500,
+    );
+  }
+}).post("/auth/sign-up", async (c) => {
+  const body = await c.req.json();
+  const result = await AuthServices.signUp(
+    body.username,
+    body.password,
+    c.env.ravin_db,
+  );
+  return c.json(result);
+});
