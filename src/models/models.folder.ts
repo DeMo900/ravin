@@ -7,7 +7,14 @@ export const createFolder = async (folder: Folder, db: D1Database) => {
       .prepare("INSERT INTO folders (name, genre_id) VALUES (?, ?)")
       .bind(name, genre_id)
       .run();
-    return { success: true, data: result };
+    return {
+      success: true,
+      data: {
+        id: result.meta.last_row_id,
+        name,
+        genre_id,
+      },
+    };
   } catch (err: any) {
     if (err.message?.includes("FOREIGN KEY constraint failed")) {
       return { success: false, error: "Genre does not exist" };

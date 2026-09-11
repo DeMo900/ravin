@@ -1,132 +1,114 @@
 import { Hono } from "hono";
 import * as imageModel from "../models/models.image";
 import * as imageService from "../services/services.image";
+import { sendError, sendSuccess } from "../utils/response";
+
 export const imageApp = new Hono<{ Bindings: Env }>();
 
 imageApp
   .get("/image/:id", async (c) => {
-    try {
-      const id = Number(c.req.param("id"));
-
-      if (Number.isNaN(id)) {
-        return c.json({ error: "Invalid id" }, 400);
-      }
-
-      const image = await imageModel.getImageById(id, c.env.ravin_db);
-
-      if (!image) {
-        return c.json({ error: "Image not found" }, 404);
-      }
-
-      return c.json({ image });
-    } catch (err) {
-      return c.json({ error: "Failed to fetch image" }, 500);
+    const id = Number(c.req.param("id"));
+    if (Number.isNaN(id)) {
+      return sendError(c, "Invalid image ID format.", 400, "BAD_REQUEST");
     }
+
+    const image = await imageModel.getImageById(id, c.env.ravin_db);
+    if (!image) {
+      return sendError(c, "Image not found.", 404, "NOT_FOUND");
+    }
+
+    return sendSuccess(c, image);
   })
   .get("/images/:folderId", async (c) => {
-    try {
-      const id = Number(c.req.param("folderId"));
-
-      if (Number.isNaN(id)) {
-        return c.json({ error: "Invalid id" }, 400);
-      }
-
-      const image = await imageModel.getImagesByFolderId(id, c.env.ravin_db);
-
-      if (!image) {
-        return c.json({ error: "Images not found" }, 404);
-      }
-
-      return c.json({ image });
-    } catch (err) {
-      return c.json({ error: "Failed to fetch images" }, 500);
+    const id = Number(c.req.param("folderId"));
+    if (Number.isNaN(id)) {
+      return sendError(c, "Invalid folder ID format.", 400, "BAD_REQUEST");
     }
+
+    const images = await imageModel.getImagesByFolderId(id, c.env.ravin_db);
+    return sendSuccess(c, images);
   })
   .get("/images/count", async (c) => {
-    try {
-      const count = await imageModel.countImages(c.env.ravin_db);
-      if (!count) {
-        return c.json({ error: "Images count not found" }, 404);
-      }
-
-      return c.json({ count });
-    } catch (err) {
-      return c.json({ error: "Failed to fetch images count " }, 500);
-    }
+    const count = await imageModel.countImages(c.env.ravin_db);
+    return sendSuccess(c, count);
   })
   .get("/images/count/genre/:id", async (c) => {
-    try {
-      const id = Number(c.req.param("id"));
-
-      if (Number.isNaN(id)) {
-        return c.json({ error: "Invalid id" }, 400);
-      }
-
-      const count = await imageModel.countImagesByGenreId(id, c.env.ravin_db);
-
-      return c.json({ count });
-    } catch (err) {
-      return c.json({ error: "Failed to fetch images count in genre" }, 500);
+    const id = Number(c.req.param("id"));
+    if (Number.isNaN(id)) {
+      return sendError(c, "Invalid genre ID format.", 400, "BAD_REQUEST");
     }
+
+    const count = await imageModel.countImagesByGenreId(id, c.env.ravin_db);
+    return sendSuccess(c, count);
   })
   .get("/images/count/folder/:id", async (c) => {
-    try {
-      const id = Number(c.req.param("id"));
-
-      if (Number.isNaN(id)) {
-        return c.json({ error: "Invalid id" }, 400);
-      }
-
-      const count = await imageModel.countImagesByFolderId(id, c.env.ravin_db);
-
-      return c.json({ count });
-    } catch (err) {
-      return c.json({ error: "Failed to fetch images count in folder" }, 500);
+    const id = Number(c.req.param("id"));
+    if (Number.isNaN(id)) {
+      return sendError(c, "Invalid folder ID format.", 400, "BAD_REQUEST");
     }
+
+    const count = await imageModel.countImagesByFolderId(id, c.env.ravin_db);
+    return sendSuccess(c, count);
   })
   .post("/cms/image", async (c) => {
-    try {
-      const body = await c.req.parseBody();
-      const file = body["image"];
-      const folder_id = body["folder_id"];
-      if (!file || !(file instanceof File)) {
-        return c.json({ error: "No valid image file provided" }, 400);
-      }
+    const body = await c.req.parseBody();
+    const file = body["image"];
+    const folder_id = body["folder_id"];
+    if (!file || !(file instanceof File)) {
+      return sendError(c, "No valid image file provided.", 400, "BAD_REQUEST");
+    }
 
-      const parsedFolderId = Number(folder_id);
-      if (!folder_id || Number.isNaN(parsedFolderId)) {
-        return c.json({ error: "A valid folder_id is required" }, 400);
-      }
-
-      const { url } = await imageService.upload(
-        file,
-        c.env.BUCKET_URL,
-        c.env.ravin,
-      );
-      if (!url) {
-        return c.json(
-          { error: "Storage driver failed to return asset URL" },
-          500,
-        );
-      }
-
-      const result = await imageModel.insertImage(
-        url,
-        parsedFolderId,
-        c.env.ravin_db,
-      );
-      if (!result) {
-        return c.json(
-          { error: "Database execution failed to record entry" },
-          500,
-        );
-      }
-
-      return c.json({ success: true, result });
-    } catch (err: any) {
-      return c.json(
-        { error: "Internal server processing error", details: err.message },
-        500,
+    const parsedFolderId = Number(folder_id);
+    if (!folder_id || Number.isNaN(parsedFolderId)) {
+      return sendError(
+        c,
+        "A valid folder_id is required.",
+        400,
+        "BAD_REQUEST",
       );
     }
+
+    const uploadResult = await imageService.upload(
+      file,
+      c.env.BUCKET_URL,
+      c.env.ravin,
+    );
+    if (!uploadResult.success) {
+      return sendError(c, uploadResult.error, 400, "UPLOAD_FAILED");
+    }
+
+    const result = await imageModel.insertImage(
+      uploadResult.url,
+      parsedFolderId,
+      c.env.ravin_db,
+    );
+    if (!result.success) {
+      return sendError(
+        c,
+        result.error || "Failed to record image entry in database.",
+        400,
+        "DATABASE_ERROR",
+      );
+    }
+
+    return sendSuccess(c, result.data, 201, "Image uploaded successfully.");
+  })
+  .delete("/cms/image/:id", async (c) => {
+    const id = Number(c.req.param("id"));
+    if (Number.isNaN(id)) {
+      return sendError(c, "Invalid image ID format.", 400, "BAD_REQUEST");
+    }
+
+    const changes = await imageModel.deleteImage(id, c.env.ravin_db);
+    if (!changes) {
+      return sendError(c, "Image not found.", 404, "NOT_FOUND");
+    }
+
+    return sendSuccess(
+      c,
+      { id, deleted: true },
+      200,
+      "Image deleted successfully.",
+    );
   });
+

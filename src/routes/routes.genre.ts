@@ -1,104 +1,66 @@
 import { Hono } from "hono";
 import * as GenreModel from "../models/models.genre";
+import { sendError, sendSuccess } from "../utils/response";
 
 export const GenreRoutes = new Hono<{ Bindings: Env }>();
 
 GenreRoutes.get("/genres", async (c) => {
-  try {
-    const result = await GenreModel.getGenres(c.env.ravin_db);
-    return c.json(result);
-  } catch (error) {
-    console.error("Failed to fetch genres:", error);
-    return c.json(
-      { error: "Internal Server Error", message: "Could not retrieve genres." },
-      500,
-    );
-  }
+  const result = await GenreModel.getGenres(c.env.ravin_db);
+  return sendSuccess(c, result);
 })
   .get("/genre/:id", async (c) => {
-    try {
-      const id = Number(c.req.param("id"));
-
-      if (isNaN(id)) {
-        return c.json(
-          { error: "Bad Request", message: "Invalid genre ID format." },
-          400,
-        );
-      }
-
-      const result = await GenreModel.getGenreWithFolders(id, c.env.ravin_db);
-      return c.json(result);
-    } catch (error) {
-      console.error(
-        `Failed to fetch genre with ID ${c.req.param("id")}:`,
-        error,
-      );
-      return c.json(
-        {
-          error: "Internal Server Error",
-          message: "Could not retrieve genre details.",
-        },
-        500,
-      );
+    const id = Number(c.req.param("id"));
+    if (isNaN(id)) {
+      return sendError(c, "Invalid genre ID format.", 400, "BAD_REQUEST");
     }
+
+    const result = await GenreModel.getGenreWithFolders(id, c.env.ravin_db);
+    if (!result) {
+      return sendError(c, "Genre not found.", 404, "NOT_FOUND");
+    }
+
+    return sendSuccess(c, result);
   })
   .get("/genres/count", async (c) => {
-    try {
-      const result = await GenreModel.genresCount(c.env.ravin_db);
-      return c.json(result);
-    } catch (error) {
-      console.error("Failed to count genres:", error);
-      return c.json(
-        {
-          error: "Internal Server Error",
-          message: "Could not retrieve genre count.",
-        },
-        500,
-      );
-    }
+    const result = await GenreModel.genresCount(c.env.ravin_db);
+    return sendSuccess(c, result);
   })
   .post("/cms/genre", async (c) => {
+    let body: any;
     try {
-      const body = await c.req.json();
-
-      if (!body || !body.name) {
-        return c.json(
-          { error: "Bad Request", message: "Genre name is required." },
-          400,
-        );
-      }
-
-      const result = await GenreModel.createGenre(body, c.env.ravin_db);
-      return c.json(result, 201);
-    } catch (error) {
-      console.error("Failed to create genre:", error);
-      return c.json(
-        { error: "Internal Server Error", message: "Could not create genre." },
-        500,
-      );
+      body = await c.req.json();
+    } catch {
+      return sendError(c, "Invalid JSON body provided.", 400, "BAD_REQUEST");
     }
+
+    if (!body || !body.name) {
+      return sendError(c, "Genre name is required.", 400, "BAD_REQUEST");
+    }
+
+    const result = await GenreModel.createGenre(body, c.env.ravin_db);
+    return sendSuccess(
+      c,
+      { id: result.meta.last_row_id, name: body.name },
+      201,
+      "Genre created successfully.",
+    );
   })
   .delete("/cms/genre/:id", async (c) => {
-    try {
-      const id = Number(c.req.param("id"));
-
-      if (isNaN(id)) {
-        return c.json(
-          { error: "Bad Request", message: "Invalid genre ID format." },
-          400,
-        );
-      }
-
-      const result = await GenreModel.deleteGenre(id, c.env.ravin_db);
-      return c.json(result);
-    } catch (error) {
-      console.error(
-        `Failed to delete genre with ID ${c.req.param("id")}:`,
-        error,
-      );
-      return c.json(
-        { error: "Internal Server Error", message: "Could not delete genre." },
-        500,
-      );
+    const id = Number(c.req.param("id"));
+    if (isNaN(id)) {
+      return sendError(c, "Invalid genre ID format.", 400, "BAD_REQUEST");
     }
+
+    const changes = await GenreModel.deleteGenre(id, c.env.ravin_db);
+    if (!changes) {
+      return sendError(c, "Genre not found.", 404, "NOT_FOUND");
+    }
+
+    return sendSuccess(
+      c,
+      { id, deleted: true },
+      200,
+      "Genre deleted successfully.",
+    );
   });
+

@@ -1,4 +1,5 @@
 import { Image } from "../types/db";
+
 export const insertImage = async (
   url: string,
   folder_id: number,
@@ -6,24 +7,31 @@ export const insertImage = async (
 ) => {
   try {
     const result = await db
-      .prepare("INSERT INTO images (url,folder_id) VALUES (?,?)")
+      .prepare("INSERT INTO images (url, folder_id) VALUES (?, ?)")
       .bind(url, folder_id)
       .run();
-    return { success: true, data: result };
+    return {
+      success: true,
+      data: {
+        id: result.meta.last_row_id,
+        url,
+        folder_id,
+      },
+    };
   } catch (error: any) {
     if (error.message?.includes("FOREIGN KEY constraint failed")) {
-      return { success: false, error: "folder does not exist" };
+      return { success: false, error: "Folder does not exist" };
     }
     return { success: false, error: "Failed to create image" };
   }
- 
 };
+
 export const getImagesByFolderId = async (id: number, db: D1Database) => {
   const result = await db
     .prepare("SELECT * FROM images WHERE folder_id = ?")
     .bind(id)
     .all<Image>();
-  return result;
+  return result.results;
 };
 
 export const getImageById = async (id: number, db: D1Database) => {
@@ -67,3 +75,16 @@ export const countImagesByFolderId = async (
     .first<{ count: number }>();
   return result;
 };
+
+export const deleteImage = async (
+  id: number,
+  db: D1Database,
+) => {
+  const { meta } = await db
+    .prepare("DELETE FROM images WHERE id = ?")
+    .bind(id)
+    .run();
+  return meta.changes;
+};
+
+
