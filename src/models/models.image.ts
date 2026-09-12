@@ -75,6 +75,24 @@ export const countImagesByFolderId = async (
     .first<{ count: number }>();
   return result;
 };
+export const updateImageFolder = async (id: number, folder_id: number, db: D1Database) => {
+  try {
+    const { meta } = await db
+      .prepare("UPDATE images SET folder_id = ? WHERE id = ?")
+      .bind(folder_id, id)
+      .run();
+
+    if (meta.changes === 0) {
+      return { success: false, error: "Image not found or folder unchanged" };
+    }
+    return { success: true, data: { changes: meta.changes } };
+  } catch (err: any) {
+    if (err.message?.includes("FOREIGN KEY constraint failed")) {
+      return { success: false, error: "Folder does not exist" };
+    }
+    return { success: false, error: "Failed to update image folder" };
+  }
+};
 
 export const deleteImage = async (
   id: number,

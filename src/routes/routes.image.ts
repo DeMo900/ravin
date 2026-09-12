@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import * as imageModel from "../models/models.image";
 import * as imageService from "../services/services.image";
-import { sendError, sendSuccess } from "../utils/response";
+import { sendError, sendSuccess , NotFoundError } from "../utils/response";
 
 export const imageApp = new Hono<{ Bindings: Env }>();
 
@@ -92,6 +92,25 @@ imageApp
     }
 
     return sendSuccess(c, result.data, 201, "Image uploaded successfully.");
+  })
+  .post("/cms/image/folder", async (c) => {
+    const { id, folder_id } = await c.req.json();
+    if (!id || Number.isNaN(Number(id))) {
+      return sendError(c, "Invalid image ID format.", 400, "BAD_REQUEST");
+    }
+    if (!folder_id || Number.isNaN(Number(folder_id))) {
+      return sendError(c, "Invalid folder_id format.", 400, "BAD_REQUEST");
+    }
+
+    const result = await imageModel.updateImageFolder(Number(id), Number(folder_id), c.env.ravin_db);
+    if (!result.success) throw new NotFoundError(result.error);
+
+    return sendSuccess(
+      c,
+      { id, folder_id, updated: true },
+      200,
+      "Image folder updated successfully.",
+    );
   })
   .delete("/cms/image/:id", async (c) => {
     const id = Number(c.req.param("id"));
