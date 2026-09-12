@@ -57,7 +57,6 @@ imageApp
     if (!file || !(file instanceof File)) {
       return sendError(c, "No valid image file provided.", 400, "BAD_REQUEST");
     }
-
     const parsedFolderId = Number(folder_id);
     if (!folder_id || Number.isNaN(parsedFolderId)) {
       return sendError(
@@ -67,32 +66,41 @@ imageApp
         "BAD_REQUEST",
       );
     }
+  }).post("/cms/images/:folderId", async (c) => {
+  const folderId = Number(c.req.param("folderId"));
+  if (Number.isNaN(folderId)) {
+    return sendError(c, "Invalid folder ID format.", 400, "BAD_REQUEST");
+  }
 
-    const uploadResult = await imageService.upload(
-      file,
-      c.env.BUCKET_URL,
-      c.env.ravin,
-    );
-    if (!uploadResult.success) {
-      return sendError(c, uploadResult.error, 400, "UPLOAD_FAILED");
-    }
+  const body = await c.req.parseBody({ all: true });
+  const rawFiles = body["images"];
+  const files = Array.isArray(rawFiles) ? rawFiles : [rawFiles];
 
-    const result = await imageModel.insertImage(
-      uploadResult.url,
-      parsedFolderId,
-      c.env.ravin_db,
-    );
-    if (!result.success) {
-      return sendError(
-        c,
-        result.error || "Failed to record image entry in database.",
-        400,
-        "DATABASE_ERROR",
-      );
-    }
+  if (files.length === 0 || !files.every((f) => f instanceof File)) {
+    return sendError(c, "No valid image files provided.", 400, "BAD_REQUEST");
+  }
 
-    return sendSuccess(c, result.data, 201, "Image uploaded successfully.");
-  })
+  const uploadResults = await Promise.all(
+    files.map((file) => imageService.upload(file, c.env.BUCKET_URL, c.env.ravin)),
+  );
+
+  const failed = uploadResults.find((r) => !r.success);
+  if (failed) {
+    return sendError(c, failed.error, 400, "UPLOAD_FAILED");
+  }
+
+  const successful = uploadResults.filter(
+    (r): r is { success: true; url: string } => r.success,
+  );
+  const uploadedImages = successful.map((r) => ({ url: r.url }));
+
+  const result = await imageModel.uploadImagesByFolderId(uploadedImages, folderId, c.env.ravin_db);
+  if (!result.success) {
+    return sendError(c, result.error || "Failed to record image entries in database.", 400, "DATABASE_ERROR");
+  }
+
+  return sendSuccess(c, result.data, 201, "Images uploaded successfully.");
+})
   .post("/cms/image/folder", async (c) => {
     const { id, folder_id } = await c.req.json();
     if (!id || Number.isNaN(Number(id))) {

@@ -25,7 +25,21 @@ export const insertImage = async (
     return { success: false, error: "Failed to create image" };
   }
 };
-
+export const uploadImagesByFolderId = async (images: {url:string}[],folder_id: number, db: D1Database) => {
+  try{
+  let queries:D1PreparedStatement[] = []
+  for(let image of images){
+    queries.push(db.prepare("INSERT INTO images (url, folder_id) VALUES (?, ?)").bind(image.url, folder_id))
+  }
+  const result = await db.batch(queries);
+  return {success:true,data:result}
+  }catch(error:any){
+    if (error.message?.includes("FOREIGN KEY constraint failed")) {
+      return { success: false, error: "Folder does not exist" };
+    }
+    return { success: false, error: "Failed to create image" };
+  }
+}
 export const getImagesByFolderId = async (id: number, db: D1Database) => {
   const result = await db
     .prepare("SELECT * FROM images WHERE folder_id = ?")
