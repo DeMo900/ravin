@@ -1,6 +1,5 @@
 export type UploadResult =
-  | { success: true; url: string }
-  | { success: false; error: string };
+  { success: true; url: string } | { success: false; error: string };
 
 export const upload = async (
   image: File,
@@ -11,13 +10,15 @@ export const upload = async (
     return { success: false, error: "Image size exceeds 5MB limit." };
   }
   if (!image.type.startsWith("image/")) {
+    console.log(image.type)
     return { success: false, error: "Invalid image type." };
   }
   const date = Date.now();
   const fileName = `${date}_${image.name}`;
   await r2.put(fileName, image);
-  const formattedBucketUrl = bucketUrl.endsWith("/") ? bucketUrl : `${bucketUrl}/`;
+  const formattedBucketUrl = bucketUrl.endsWith("/")
+    ? bucketUrl
+    : `${bucketUrl}/`;
   const url = `${formattedBucketUrl}${fileName}`;
   return { success: true, url };
 };
-

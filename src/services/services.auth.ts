@@ -6,18 +6,23 @@ export const login = async (
   username: string,
   password: string,
   db: D1Database,
-): Promise<{success: boolean, user: UserWithoutPassword | null, error?: string}> => {
+): Promise<{
+  success: boolean;
+  user: UserWithoutPassword | null;
+  error?: string;
+}> => {
   const user = await UserModel.findByUsername(username, db);
-  if (!user) return {success: false, user: null, error: "User not found"};
+  if (!user) return { success: false, user: null, error: "User not found" };
 
   const isPasswordValid = await comparePassword(password, user.password_hash);
-  if (!isPasswordValid) return {success: false, user: null, error: "Invalid password"};
-  const userWithoutPassword:UserWithoutPassword = {
+  if (!isPasswordValid)
+    return { success: false, user: null, error: "Invalid password" };
+  const userWithoutPassword: UserWithoutPassword = {
     id: user.id,
     username: user.username,
-    created_at: user.created_at
-  }
-  return {success: true, user:userWithoutPassword};
+    created_at: user.created_at,
+  };
+  return { success: true, user: userWithoutPassword };
 };
 
 export const signUp = async (

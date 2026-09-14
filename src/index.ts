@@ -24,7 +24,13 @@ app.route("/", ImageRoutes);
 
 app.onError((err, c) => {
   if (err instanceof AppError) {
-    return sendError(c, err.message, err.statusCode, err.errorCode, err.details);
+    return sendError(
+      c,
+      err.message,
+      err.statusCode,
+      err.errorCode,
+      err.details,
+    );
   }
 
   if (err instanceof HTTPException) {
@@ -38,7 +44,8 @@ app.onError((err, c) => {
   }
 
   console.error("Unhandled application error:", err);
-  const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
+  const errorMessage =
+    err instanceof Error ? err.message : "An unexpected error occurred.";
   return sendError(c, errorMessage, 500, "INTERNAL_SERVER_ERROR");
 });
 
@@ -52,4 +59,3 @@ app.notFound((c) => {
 });
 
 export default app;
-

@@ -25,21 +25,29 @@ export const insertImage = async (
     return { success: false, error: "Failed to create image" };
   }
 };
-export const uploadImagesByFolderId = async (images: {url:string}[],folder_id: number, db: D1Database) => {
-  try{
-  let queries:D1PreparedStatement[] = []
-  for(let image of images){
-    queries.push(db.prepare("INSERT INTO images (url, folder_id) VALUES (?, ?)").bind(image.url, folder_id))
-  }
-  const result = await db.batch(queries);
-  return {success:true,data:result}
-  }catch(error:any){
+export const uploadImagesByFolderId = async (
+  images: { url: string }[],
+  folder_id: number,
+  db: D1Database,
+) => {
+  try {
+    let queries: D1PreparedStatement[] = [];
+    for (let image of images) {
+      queries.push(
+        db
+          .prepare("INSERT INTO images (url, folder_id) VALUES (?, ?)")
+          .bind(image.url, folder_id),
+      );
+    }
+    const result = await db.batch(queries);
+    return { success: true, data: result };
+  } catch (error: any) {
     if (error.message?.includes("FOREIGN KEY constraint failed")) {
       return { success: false, error: "Folder does not exist" };
     }
     return { success: false, error: "Failed to create image" };
   }
-}
+};
 export const getImagesByFolderId = async (id: number, db: D1Database) => {
   const result = await db
     .prepare("SELECT * FROM images WHERE folder_id = ?")
@@ -63,33 +71,31 @@ export const countImages = async (db: D1Database) => {
   return result;
 };
 
-export const countImagesByGenreId = async (
-  id: number,
-  db: D1Database,
-) => {
+export const countImagesByGenreId = async (id: number, db: D1Database) => {
   const result = await db
     .prepare(
       `SELECT COUNT(images.id) AS count 
        FROM images 
        INNER JOIN folders ON images.folder_id = folders.id
-       WHERE folders.genre_id = ?`
+       WHERE folders.genre_id = ?`,
     )
     .bind(id)
     .first<{ count: number }>();
   return result;
 };
 
-export const countImagesByFolderId = async (
-  id: number,
-  db: D1Database,
-) => {
+export const countImagesByFolderId = async (id: number, db: D1Database) => {
   const result = await db
     .prepare("SELECT COUNT(id) AS count FROM images WHERE folder_id = ?")
     .bind(id)
     .first<{ count: number }>();
   return result;
 };
-export const updateImageFolder = async (id: number, folder_id: number, db: D1Database) => {
+export const updateImageFolder = async (
+  id: number,
+  folder_id: number,
+  db: D1Database,
+) => {
   try {
     const { meta } = await db
       .prepare("UPDATE images SET folder_id = ? WHERE id = ?")
@@ -108,15 +114,10 @@ export const updateImageFolder = async (id: number, folder_id: number, db: D1Dat
   }
 };
 
-export const deleteImage = async (
-  id: number,
-  db: D1Database,
-) => {
+export const deleteImage = async (id: number, db: D1Database) => {
   const { meta } = await db
     .prepare("DELETE FROM images WHERE id = ?")
     .bind(id)
     .run();
   return meta.changes;
 };
-
-

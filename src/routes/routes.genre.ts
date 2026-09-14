@@ -63,4 +63,3 @@ GenreRoutes.get("/genres", async (c) => {
       "Genre deleted successfully.",
     );
   });
-

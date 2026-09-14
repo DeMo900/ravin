@@ -72,4 +72,3 @@ FolderRoutes.get("/folders", async (c) => {
       "Folder deleted successfully.",
     );
   });
-
