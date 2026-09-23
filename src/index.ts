@@ -8,8 +8,15 @@ import { imageApp as ImageRoutes } from "./routes/routes.image";
 import { AppError, sendError } from "./utils/response";
 import {cors} from "hono/cors"
 const app = new Hono<{ Bindings: Env }>();
-app.use("*",
-cors({origin:"https://ravin-fronend-ox7x.vercel.app"})
+app.use(
+  '*',
+  cors({
+    origin: (origin, c) => {
+      const allowedOrigin = c.env.FRONTEND_URL || 'http://localhost:5173'
+      
+      return origin === allowedOrigin ? origin : allowedOrigin
+    },
+  })
 )
 app.use("/cms/*", async (c, next) => {
   const jwtMiddleware = jwt({
