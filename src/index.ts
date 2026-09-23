@@ -8,16 +8,17 @@ import { imageApp as ImageRoutes } from "./routes/routes.image";
 import { AppError, sendError } from "./utils/response";
 import {cors} from "hono/cors"
 const app = new Hono<{ Bindings: Env }>();
-app.use(
-  '*',
-  cors({
-    origin: (origin, c) => {
-      const allowedOrigin = c.env.FRONTEND_URL || 'http://localhost:5173'
-      
-      return origin === allowedOrigin ? origin : allowedOrigin
-    },
+ app.use('*', async (c, next) => {
+  const allowedOrigin = c.env?.FRONTEND_URL || 'http://localhost:5173'
+ const corsMiddleware = cors({
+    origin: allowedOrigin,
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
   })
-)
+  
+  return corsMiddleware(c, next)
+})
+  
 app.use("/cms/*", async (c, next) => {
   const jwtMiddleware = jwt({
     secret: c.env.JWT_SECRET,
