@@ -6,9 +6,11 @@ import { AuthRoutes } from "./routes/routes.auth";
 import { FolderRoutes } from "./routes/routes.folder";
 import { imageApp as ImageRoutes } from "./routes/routes.image";
 import { AppError, sendError } from "./utils/response";
-
+import {cors} from "hono/cors"
 const app = new Hono<{ Bindings: Env }>();
-
+app.use("*",
+cors({origin:"https://ravin-fronend-ox7x.vercel.app"})
+)
 app.use("/cms/*", async (c, next) => {
   const jwtMiddleware = jwt({
     secret: c.env.JWT_SECRET,
