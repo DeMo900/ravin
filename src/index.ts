@@ -12,7 +12,7 @@ const app = new Hono<{ Bindings: Env }>();
   '/*',
   cors({
     origin: (origin) =>
-      ['https://ravin-fronend-ox7x-git-main-demo900-s-project.vercel.app', 'http://localhost:5173'].includes(origin)
+      ['https://ravin-fronend-ox7x.vercel.app/', 'http://localhost:5173'].includes(origin)
         ? origin
         : null,
   })
